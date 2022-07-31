@@ -1,7 +1,9 @@
 线程池
 --------------
 一个给初学者学习的简易版C++11线程池
+
 使用方法：
+
     //创建ThreadNum数量个线程
     ThreadPool pool(ThreadNum);
     
