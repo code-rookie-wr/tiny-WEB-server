@@ -1,4 +1,6 @@
 #C++ Open source project
 --------------
-add ThreadPool
-add echoServer
+Including:  
+
+    ThreadPool  线程池
+    echoServer  回声服务器
