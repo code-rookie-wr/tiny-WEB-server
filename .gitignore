@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# VS
+.vs/
+x32/
+x64/
+*.sln
+*.vcxproj
+*.filters
+*.user
+
+# VScode
+.vscode/
