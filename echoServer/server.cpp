@@ -13,27 +13,28 @@ constexpr const char* closeKey = "CLOSESERVER"; //提供一个客户端关闭服
 int main(int argc, char* argv[]){
 
     if(argc != 2){
-        cerr << "Usage: ./server.exe port" << endl;
+        cerr << "Usage: ./server port" << endl;
         exit(-1);
     }
 
     sockaddr_in serverAddr;
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     serverAddr.sin_port = htons(atoi(argv[1]));
 
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
     int bindRet = bind(sockfd, (sockaddr*)&serverAddr, sizeof(serverAddr));
     if(bindRet != 0){
-        cerr << "bind failed !" << endl;
+        perror("bind failed");
         close(sockfd);
         exit(-2);
     }
 
     int listenRet = listen(sockfd, 16);
     if(bindRet != 0){
-        cerr << "listen failed !" << endl;
+        perror("listen failed");
         close(sockfd);
         exit(-3);
     }
@@ -42,11 +43,12 @@ int main(int argc, char* argv[]){
 
     while(1){
         sockaddr_in clientAddr;
+        memset(&clientAddr, 0, sizeof(clientAddr));
 
         socklen_t clientAddrLen = sizeof(clientAddr);
         int clientfd = accept(sockfd, (sockaddr*)&clientAddr, &clientAddrLen);
         if(clientfd < 0) {
-            cerr << "accept failed! " << endl;
+            perror("accept failed");
             close(sockfd);
             close(clientfd);
             exit(-4);
@@ -62,6 +64,7 @@ int main(int argc, char* argv[]){
             if(strcmp(buffer, closeKey) == 0){
                 close(clientfd);
                 close(sockfd);
+                delete[] buffer;
                 exit(0);
             }
             //将接收的数据转成大写

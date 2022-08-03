@@ -10,21 +10,21 @@ constexpr int MAXBUFLEN = 128; //最大接收长度
 
 int main(int argc, char* argv[]){
     if(argc != 3){
-        cerr << "Usage: ./client.exe port message" << endl;
+        cerr << "Usage: ./client port message" << endl;
         exit(-1);
     }
 
     sockaddr_in clientAddr;
-
-    int clientfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&clientAddr, 0, sizeof(clientAddr));
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     clientAddr.sin_port = htons(atoi(argv[1]));
 
+    int clientfd = socket(AF_INET, SOCK_STREAM, 0);
+
     int connectRet = connect(clientfd, (sockaddr*)&clientAddr, sizeof(clientAddr));
     if(connectRet == -1){
-        cerr << "Couldn't connect to server " << endl;
+        perror("connect failed");
         close(clientfd);
         exit(-2);
     }
