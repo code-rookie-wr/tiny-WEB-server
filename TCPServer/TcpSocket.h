@@ -6,7 +6,7 @@
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<cstring>
-#include<thread>
+
 
 using namespace std;
 
@@ -22,10 +22,6 @@ public:
     bool acceptConn(const int& listenfd);
     //获取客户端ip
     char* getClientIP();
-    //接收客户端数据
-    string recvMsg();
-    //向客户端发送数据
-    int sendMsg(string& msg);
 
 public:
     int m_listenfd;  //服务端监听的fd
@@ -56,6 +52,11 @@ public:
     int m_clientfd;  //客户端的fd
 };
 
+
+//接收数据
+string recvMsg(const int& fd);
+//发送数据
+int sendMsg(const int& fd, string& msg);
 
 int readn(const int& sockfd, char* buf, int size);
 int writen(const int& sockfd, const char* buf, int size);
