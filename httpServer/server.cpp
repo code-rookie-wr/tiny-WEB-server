@@ -11,7 +11,7 @@ int epfd = -1;
 
 int main(){
     TcpServer server;
-    if(server.initServer(8080) == false){
+    if(server.initServer(80) == false){
         return -1;
     }
 
