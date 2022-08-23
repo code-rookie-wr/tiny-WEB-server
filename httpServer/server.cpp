@@ -11,7 +11,7 @@ int epfd = -1;
 
 int main(){
     TcpServer server;
-    if(server.initServer(80) == false){
+    if(server.initServer(8080) == false){
         return -1;
     }
 
@@ -50,7 +50,7 @@ int main(){
             else{
                 TcpServer* client = new TcpServer;
                 client->m_clientfd = curfd;
-                thread th(doHTTPRequest, client);
+                thread th(doHTTPRequest, ref(client));
                 th.join();
             }
         }
@@ -76,7 +76,7 @@ void doHTTPRequest(void* arg){
             //获取url
             while(isspace(buf[i++]));
             while(!isspace(buf[i])){
-                if(buf[i] == '?'){
+                if(buf[i] == '?' || buf[i] == ':'){
                     break;
                 }
                 url += buf[i++];
@@ -148,11 +148,19 @@ void doHTTPResponse(const int& fd, const string path){
     ifstream resource;
     resource.open(path, ios::in);
     if(resource.is_open()){
-        string buf;
-        while(getline(resource, buf)){
-            send(fd, buf.c_str(), buf.size(), 0);
+        string head;
+        head += "HTTP/1.1 200 OK\r\n";
+        head += "Content-Type: text/html\r\n";
+        head += "Connection: keep-alive\r\n\r\n";
+        int len = send(fd, head.c_str(), head.size(), 0);
+        if(len < 0) return;
+        else{
+            string buf;
+            while(getline(resource, buf)){
+                send(fd, buf.c_str(), buf.size(), 0);
+            }
+            resource.close();
         }
-        resource.close();
     }
     else{
         notFound(fd);
