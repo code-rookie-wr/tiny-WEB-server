@@ -21,11 +21,11 @@ class ThreadPool {
 public:
     //线程池构造函数，传入初始线程数，默认为1
     ThreadPool(int num = 1);
+    //线程池析构函数
+    ~ThreadPool();
     //添加任务到任务队列
-    template <class F>
-    void addTask(F&& f);
-    //线程启动
-    void run();
+    template <class F, class...Args>
+    void addTask(F&& f, Args&& ...args);
 
 private:
     //工作线程
@@ -40,7 +40,7 @@ private:
     atomic<bool> stop;
 };
 
-inline ThreadPool::ThreadPool(int num) :stop(false) {
+ThreadPool::ThreadPool(int num) :stop(false) {
     //判断输入默认线程是否合理(1-9)之间
     if (num <= 0 || num > MAX_THREADS) {
         cerr << "Input threadNum is invalid !" << endl;
@@ -67,7 +67,7 @@ inline ThreadPool::ThreadPool(int num) :stop(false) {
                         return;
                     }
                     //取出队头任务
-                    task = move(this->tasks.front());
+                    task = this->tasks.front();
                     //任务出队
                     this->tasks.pop();
                 }
@@ -78,23 +78,24 @@ inline ThreadPool::ThreadPool(int num) :stop(false) {
     }
 }
 
-template <class F>
-void ThreadPool::addTask(F&& f) {
+template <class F, class...Args>
+void ThreadPool::addTask(F&& f, Args&& ...args) {
+    //使用可变参模板结合bind实现参数数量自定义
+    auto task = bind(forward<F>(f), forward<Args>(args)...);
     {
         //加锁
         unique_lock<mutex> lock(mtx);
         //将新任务添加进任务队列
-        tasks.emplace(f);
+        tasks.emplace(task);
     }
     //队列中有了任务，唤醒等待线程
     this->cond.notify_one();
 }
 
-void ThreadPool::run() {
-    {
-        //停止标志置为true
-        stop = true;
-    }
+ThreadPool::~ThreadPool() {
+    //停止标志置为true
+    stop = true;
+
     //唤醒所有工作线程，直到队列任务执行完
     this->cond.notify_all();
 
