@@ -1,11 +1,12 @@
 #ifndef TCPSOCKET_H
 #define TCPSOCKET_H
 
-#include<iostream>
-#include<unistd.h>
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<cstring>
+#include <iostream>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <cstring>
+#include <fcntl.h>
 
 
 using namespace std;
@@ -22,14 +23,16 @@ public:
     bool acceptConn(const int& listenfd);
     //获取客户端ip
     char* getClientIP();
+    //设置非阻塞
+    void setNoBlocking(int& fd);
 
 public:
-    int m_listenfd;  //服务端监听的fd
-    int m_clientfd;  //客户端连接上来的fd
+    int _listenfd;  //服务端监听的fd
+    int _clientfd;  //客户端连接上来的fd
 
 private:
-    struct sockaddr_in serverAddr;  //服务端地址信息
-    struct sockaddr_in clientAddr;  //客户端地址信息
+    struct sockaddr_in _serverAddr;  //服务端地址信息
+    struct sockaddr_in _clientAddr;  //客户端地址信息
 };
 
 
@@ -49,7 +52,7 @@ public:
     void closeConn();
 
 public:
-    int m_clientfd;  //客户端的fd
+    int _clientfd;  //客户端的fd
 };
 
 

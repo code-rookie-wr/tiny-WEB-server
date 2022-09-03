@@ -1,36 +1,36 @@
 #include"TcpSocket.h"
 
 TcpServer::TcpServer(){
-    m_listenfd = -1;
-    m_clientfd = -1;
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    memset(&clientAddr, 0, sizeof(clientAddr));
+    _listenfd = -1;
+    _clientfd = -1;
+    memset(&_serverAddr, 0, sizeof(_serverAddr));
+    memset(&_clientAddr, 0, sizeof(_clientAddr));
 }
 
 TcpServer::~TcpServer(){
-    if(m_listenfd > 0){
-        close(m_listenfd);
+    if(_listenfd > 0){
+        close(_listenfd);
     }
-    if(m_clientfd > 0){
-        close(m_clientfd);
+    if(_clientfd > 0){
+        close(_clientfd);
     }
 }
 
 bool TcpServer::initServer(const unsigned short port){
-    if((m_listenfd = socket(AF_INET, SOCK_STREAM, 0)) <= 0){
+    if((_listenfd = socket(AF_INET, SOCK_STREAM, 0)) <= 0){
         return false;
     }
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddr.sin_port = htons(port);
-    if(bind(m_listenfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) != 0){
+    _serverAddr.sin_family = AF_INET;
+    _serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    _serverAddr.sin_port = htons(port);
+    if(bind(_listenfd, (struct sockaddr*)&_serverAddr, sizeof(_serverAddr)) != 0){
         perror("bind");
-        close(m_listenfd);
+        close(_listenfd);
         return false;
     }
-    if(listen(m_listenfd, 128) != 0){
+    if(listen(_listenfd, 128) != 0){
         perror("listen");
-        close(m_listenfd);
+        close(_listenfd);
         return false;
     }
     return true;
@@ -40,8 +40,8 @@ bool TcpServer::acceptConn(const int& listenfd){
     if(listenfd == -1){
         return false;
     }
-    socklen_t len = sizeof(clientAddr);
-    if((m_clientfd = accept(listenfd, (struct sockaddr*)&clientAddr, &len)) < 0){
+    socklen_t len = sizeof(_clientAddr);
+    if((_clientfd = accept(listenfd, (struct sockaddr*)&_clientAddr, &len)) < 0){
         perror("accept");
         return false;
     }
@@ -49,13 +49,19 @@ bool TcpServer::acceptConn(const int& listenfd){
 }
 
 char* TcpServer::getClientIP(){
-    return inet_ntoa(clientAddr.sin_addr);
+    return inet_ntoa(_clientAddr.sin_addr);
+}
+
+void TcpServer::setNoBlocking(int& fd){
+    int flag = fcntl(fd, F_GETFL);
+    flag |= O_NONBLOCK;
+    fcntl(fd, F_SETFL, flag);
 }
 
 
 
 TcpClient::TcpClient(){
-    m_clientfd = -1;
+    _clientfd = -1;
 }
 
 TcpClient::~TcpClient(){
@@ -63,31 +69,31 @@ TcpClient::~TcpClient(){
 }
 
 bool TcpClient::connectToHost(string ip, const unsigned short port){
-    if(m_clientfd != -1){
-        close(m_clientfd);
-        m_clientfd = -1;
+    if(_clientfd != -1){
+        close(_clientfd);
+        _clientfd = -1;
     }
-    m_clientfd = socket(AF_INET, SOCK_STREAM, 0);
+    _clientfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in clientAddr;
     memset(&clientAddr, 0, sizeof(clientAddr));
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr= inet_addr(ip.c_str());
     clientAddr.sin_port = htons(port);
 
-    if((connect(m_clientfd, (struct sockaddr*)&clientAddr, sizeof(clientAddr))) != 0){
+    if((connect(_clientfd, (struct sockaddr*)&clientAddr, sizeof(clientAddr))) != 0){
         perror("connect");
-        close(m_clientfd);
-        m_clientfd = -1;
+        close(_clientfd);
+        _clientfd = -1;
         return false;
     }
     return true;
 }
 
 void TcpClient::closeConn(){
-    if(m_clientfd > 0){
-        close(m_clientfd);
+    if(_clientfd > 0){
+        close(_clientfd);
     }
-    m_clientfd = -1;
+    _clientfd = -1;
 }
 
 
